@@ -38,7 +38,7 @@ class App extends Component {
               backgroundColor:"rgb(218,35,35)",
             }}
           />
-          <Drawer open={this.state.menu}/>
+
           <Game setTitle={this.setTitle.bind(this)}/>
 
           <Snackbar
