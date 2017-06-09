@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
+
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import Snackbar from 'material-ui/Snackbar';
+import IconMenu from 'material-ui/IconMenu';
+import IconButton from 'material-ui/IconButton';
+import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
+import MenuItem from 'material-ui/MenuItem';
+
 import CourseDisplay from './CourseDisplay.js'
 import './App.css';
 import Game from './Game.js'
-
-
 
 class App extends Component {
   constructor() {
@@ -35,6 +39,10 @@ class App extends Component {
     });
   }
 
+  toggleWalls() {
+    this.setState({drawWalls: !this.state.drawWalls});
+  }
+
   toggleLessonList(info,open) {
     if (!this.state.waitForTimeOut) {
       this.setState({
@@ -49,7 +57,6 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-      
         <MuiThemeProvider>
         <div>
           <AppBar 
@@ -57,9 +64,10 @@ class App extends Component {
             style={{
               backgroundColor:"rgb(218,35,35)",
             }}
+            iconElementLeft={<DebugMenu toggleWalls={this.toggleWalls.bind(this)}/>}
           />
           <CourseDisplay info = {this.state.lessonInfo} open = {this.state.lessonList} toggleLessonList={this.toggleLessonList.bind(this)}/>
-          <Game setTitle={this.setTitle.bind(this)} toggleLessonList = {this.toggleLessonList.bind(this)}/>
+          <Game drawWalls = {this.state.drawWalls} setTitle={this.setTitle.bind(this)} toggleLessonList = {this.toggleLessonList.bind(this)}/>
 
           <Snackbar
             open={this.state.snackbar}
@@ -84,3 +92,17 @@ class App extends Component {
 }
 
 export default App;
+
+const DebugMenu = (props) => (
+  <IconMenu
+    {...props}
+    iconButtonElement={
+      <IconButton><MoreVertIcon /></IconButton>
+    }
+    targetOrigin={{horizontal: 'right', vertical: 'top'}}
+    anchorOrigin={{horizontal: 'right', vertical: 'top'}}
+  >
+    <MenuItem primaryText="Show Colliders" onClick={props.toggleWalls}/>
+  </IconMenu>
+)
+

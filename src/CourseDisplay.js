@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
 import AppBar from 'material-ui/AppBar';
 
+import injectTapEventPlugin from 'react-tap-event-plugin';
+
+
 import Drawer from 'material-ui/Drawer';
 import IconButton from 'material-ui/IconButton';
 import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import MenuItem from 'material-ui/MenuItem';
 
 
-
+injectTapEventPlugin();
 class CourseDisplay extends Component {
 	getTitle() {
 		if (this.props.info) {
@@ -17,7 +20,7 @@ class CourseDisplay extends Component {
 	getImage() {
 		if (this.props.info) {
 			return (
-				<img src = {this.props.info.image} width='90%' style={{marginTop:"12px",marginBottom:"12px"}}/>
+				<img src = {this.props.info.image} width='90%' style={{marginTop:"12px",marginBottom:"12px"}} alt=""/>
 			)
 		} else {
 			return <div/>
@@ -30,7 +33,7 @@ class CourseDisplay extends Component {
 				<div>
 				{
 	            	this.props.info.lessons.map((lesson,i) => 
-	            		<MenuItem> {lesson} </MenuItem>
+	            		<MenuItem key={i}> {lesson} </MenuItem>
 		            )
 		        }
 		        </div>

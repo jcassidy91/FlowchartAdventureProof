@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import Courses from './data/Courses';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import Drawer from 'material-ui/Drawer';
+import Exercises from './data/Exercises';
+import MapObjects from './data/mapWalls.js';
 
 const myImage = new Image();
 myImage.src = require('./images/characterSheet.png');
@@ -32,29 +32,26 @@ var courseTiles = [
 	},
 ]
 
-var ExerciseTiles = [
+var exerciseTiles = [
 {
-		name: "DrawingChallenge2",
+		name: "WhileLoops2",
 		xpos: 1262,
 		ypos: 825,
 		width: 50,
-		height: 50,
-		difficulty: 1
+		height: 50
 	},
 	{
-		name: "WhileLoops2",
+		name: "DrawingChallenge4",
 		xpos: 1384,
 		ypos: 639,
 		width: 50,
-		height: 50,
-		difficulty: 2
+		height: 50
 	}
 ]
 
 var ctx;
 var mouseX = 0;
 var mouseY = 0;
-const locations = ["Object Castle", "Forest Array", "Logic Mounds"];
 var currentLocation = "";
 
 class Game extends Component {
@@ -157,8 +154,15 @@ class Game extends Component {
 
 	drawTiles() {
 		
+		
 		const offx = this.state.camx;
 		const offy = this.state.camy;
+
+		if (this.props.drawWalls) {
+			MapObjects.forEach((e)=>{
+				ctx.fillRect(e.xpos-offx,e.ypos-offy,32,32);
+			})
+		}
 
 		let check = false;
 		ctx.fillStyle = "rgb(0,0,255";
@@ -173,8 +177,15 @@ class Game extends Component {
 			}
 		})
 		ctx.fillStyle = "rgb(255,0,0";
-		ExerciseTiles.forEach((tile) => {
+		exerciseTiles.forEach((tile) => {
 			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
+
+			if(this.collision(tile)) {
+				if (this.state.register['e']) {
+		        	this.props.toggleLessonList(Exercises[tile.name],true);
+		        }
+		        check = true;
+			}
 		})
 
 		if (!check) {
@@ -183,7 +194,7 @@ class Game extends Component {
 	}
 
 	collision(tile) {
-		const obj1 = {x: this.state.x, y: this.state.y, w:64, h:64};
+		const obj1 = {x: this.state.x+8, y: this.state.y+8, w:48, h:48};
 		const obj2 = {x: tile.xpos, y: tile.ypos, w:tile.width, h:tile.height};
 
 		if (obj1.x + obj1.w > obj2.x &&
@@ -251,9 +262,7 @@ class Game extends Component {
 			const hdir = o.register['ArrowRight'] - o.register['ArrowLeft'];
 			const vdir = o.register['ArrowDown'] - o.register['ArrowUp'];
 			const speed = (hdir !== 0 && vdir !== 0)?(3 * Math.sin(Math.PI/4)):3;
-			o.x += hdir*speed;
-			o.y += vdir*speed;
-
+			
 			if (hdir !== 0 || vdir !== 0) {
 				o.animIndex++;
 			}else{
@@ -261,6 +270,34 @@ class Game extends Component {
 			}
 
 			o.imageDir = getImageDir(hdir,vdir,o.imageDir);
+
+			for (let i=speed; i>0; i--) {
+				let fail = false;
+				MapObjects.forEach((e)=>{
+					if (!fail && this.collision({xpos: e.xpos-i*hdir, ypos: e.ypos, width:32, height: 32})) {
+						fail = true
+					}
+				})
+
+				if (!fail) {
+					o.x+=hdir*i;
+					i=0;
+				}
+			}
+
+			for (let i=speed; i>0; i--) {
+				let fail = false;
+				MapObjects.forEach((e)=>{
+					if (!fail && this.collision({xpos: e.xpos, ypos: e.ypos-i*vdir, width:32, height: 32})) {
+						fail = true
+					}
+				})
+
+				if (!fail) {
+					o.y+=vdir*i;
+					i=0;
+				}
+			}
 		});
 	}
 
