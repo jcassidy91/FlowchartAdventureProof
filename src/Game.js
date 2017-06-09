@@ -1,76 +1,43 @@
 import React, {Component} from 'react';
-import Courses from './data/Courses';
-import Exercises from './data/Exercises';
-import MapObjects from './data/mapWalls.js';
+import {mapWalls, mapImage} from './data/mapWalls.js';
+import courseTiles from './data/courseTiles.js';
+import exerciseTiles from './data/exerciseTiles.js';
 
-const myImage = new Image();
-myImage.src = require('./images/characterSheet.png');
-const mapImage = new Image();
-mapImage.src = require('./images/adventureTimeMap.png');
-
-var courseTiles = [
-	{
-		name: "javaScriptGameDesign",
-		xpos: 1505,
-		ypos: 600,
-		width: 50,
-		height: 50
-	},
-	{
-		name: "javaScriptGameEngine",
-		xpos: 2110,
-		ypos: 720,
-		width: 50,
-		height: 50
-	},
-	{
-		name: "IntroToWeb",
-		xpos: 830,
-		ypos: 770,
-		width: 50,
-		height: 50
-	},
-]
-
-var exerciseTiles = [
-{
-		name: "WhileLoops2",
-		xpos: 1262,
-		ypos: 825,
-		width: 50,
-		height: 50
-	},
-	{
-		name: "DrawingChallenge4",
-		xpos: 1384,
-		ypos: 639,
-		width: 50,
-		height: 50
+class Player {
+	constructor() {
+		this.position= {x:0, y:0},
+		this.camera= {x:0, y:0},
+		this.sprite=	{
+			image: new Image(),
+			animIndex: 0,
+			imageDir: 3,
+		}
+		this.sprite.image.src= require('./images/characterSheet.png'),
+		this.currentLocation = ""
 	}
-]
+}
+
+class Input {
+	constructor() {
+		this.register= {
+			ArrowLeft: 0,
+			ArrowRight: 0,
+			ArrowUp: 0,
+			ArrowDown: 0
+		}
+		this.mouse = {x:0, y:0}
+	}
+}
 
 var ctx;
-var mouseX = 0;
-var mouseY = 0;
-var currentLocation = "";
+
+var player = new Player();
+var input = new Input();
 
 class Game extends Component {
 	constructor() {
 		super();
-		this.state = {
-			register: {
-				ArrowLeft: 0,
-				ArrowRight: 0,
-				ArrowUp: 0,
-				ArrowDown: 0
-			},
-			x:0,
-			y:0,
-			camx:0,
-			camy:0,
-			animIndex: 0,
-			imageDir: 3,
-		};
+
 		this.tick = this.tick.bind(this);
 		this.init = this.init.bind(this);
 	}
@@ -90,31 +57,31 @@ class Game extends Component {
 
 	handleMouseMove(e) {
 		const rect = this.refs.canvas.getBoundingClientRect();
-		mouseX = e.clientX - rect.left + this.state.camx;
-		mouseY = e.clientY - rect.top + this.state.camy;
+		input.mouse.x = e.clientX - rect.left + player.camera.x;
+		input.mouse.y = e.clientY - rect.top + player.camera.y;
 	}
 
 	handleKeyDown(e) {
-		this.setState((oldState) => {
-			oldState.register[e.key] = 1;
-		});
+
+			input.register[e.key] = 1;
+
 		e.preventDefault();
 	};
 
 	handleKeyUp(e) {
-		this.setState((oldState) => {oldState.register[e.key] = 0;});
+		input.register[e.key] = 0;
 		e.preventDefault();
 	}
 
 	init() {
 		ctx = this.refs.canvas.getContext('2d');
 
-		this.setState({
-			x:1442,
-			y:1000,
-			camx:1442-this.refs.canvas.width/2 + 32,
-			camy:1000-this.refs.canvas.height/2
-		})
+
+			player.position.x=1442,
+			player.position.y=1000,
+			player.camera.x=1442-this.refs.canvas.width/2 + 32,
+			player.camera.y=1000-this.refs.canvas.height/2
+
 
 		requestAnimationFrame(this.tick);
 	}
@@ -130,39 +97,31 @@ class Game extends Component {
 		this.drawTiles();
         this.drawPlayer();
 
-
-        ctx.font = '32px Roboto'
-        ctx.fillText('(' + mouseX + ',' + mouseY + ')', 50, 50);
+        this.drawDebug();
 
 		requestAnimationFrame(this.tick);
 	}
 
 	checkNewLocation() {
-		if (this.state.x < 930 && currentLocation !== "Web Valley"){
+		if (player.position.x < 930 && player.currentLocation !== "Web Valley"){
 			this.props.setTitle("Web Valley");
-			currentLocation = "Web Valley";
+			player.currentLocation = "Web Valley";
 		}
-		if (this.state.x > 1000 && this.state.x < 1980 && currentLocation !== "JavaScript Kingdom"){
+		if (player.position.x > 1000 && player.position.x < 1980 && player.currentLocation !== "JavaScript Kingdom"){
 			this.props.setTitle("JavaScript Kingdom");
-			currentLocation = "JavaScript Kingdom";
+			player.currentLocation = "JavaScript Kingdom";
 		}
-		if (this.state.x > 2050 && currentLocation !== "Unity Forest"){
+		if (player.position.x > 2050 && player.currentLocation !== "Unity Forest"){
 			this.props.setTitle("Unity Forest");
-			currentLocation = "Unity Forest";
+			player.currentLocation = "Unity Forest";
 		}
 	}
 
 	drawTiles() {
 		
 		
-		const offx = this.state.camx;
-		const offy = this.state.camy;
-
-		if (this.props.drawWalls) {
-			MapObjects.forEach((e)=>{
-				ctx.fillRect(e.xpos-offx,e.ypos-offy,32,32);
-			})
-		}
+		const offx = player.camera.x;
+		const offy = player.camera.y;
 
 		let check = false;
 		ctx.fillStyle = "rgb(0,0,255";
@@ -170,8 +129,8 @@ class Game extends Component {
 			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
 
 			if(this.collision(tile)) {
-				if (this.state.register['e']) {
-		        	this.props.toggleLessonList(Courses[tile.name],true);
+				if (input.register['e']) {
+		        	this.props.toggleLessonList(tile.info,true);
 		        }
 		        check = true;
 			}
@@ -181,8 +140,8 @@ class Game extends Component {
 			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
 
 			if(this.collision(tile)) {
-				if (this.state.register['e']) {
-		        	this.props.toggleLessonList(Exercises[tile.name],true);
+				if (input.register['e']) {
+		        	this.props.toggleLessonList(tile.info,true);
 		        }
 		        check = true;
 			}
@@ -194,7 +153,7 @@ class Game extends Component {
 	}
 
 	collision(tile) {
-		const obj1 = {x: this.state.x+8, y: this.state.y+8, w:48, h:48};
+		const obj1 = {x: player.position.x+8, y: player.position.y+8, w:48, h:48};
 		const obj2 = {x: tile.xpos, y: tile.ypos, w:tile.width, h:tile.height};
 
 		if (obj1.x + obj1.w > obj2.x &&
@@ -210,99 +169,117 @@ class Game extends Component {
 
 	drawPlayer() {
 		const animSpeed = 40;
-        const sx = Math.floor((this.state.animIndex % animSpeed) / (animSpeed/4))*64;
-		ctx.drawImage(myImage,sx,this.state.imageDir*64,64,64,this.state.x-this.state.camx,this.state.y-this.state.camy,64,64);
+        const sx = Math.floor((player.sprite.animIndex % animSpeed) / (animSpeed/4))*64;
+		ctx.drawImage(player.sprite.image,sx,player.sprite.imageDir*64,64,64,player.position.x-player.camera.x,player.position.y-player.camera.y,64,64);
 	}
 
 	moveCamera() {
 		const sw = this.refs.canvas.width;
 		const sh = this.refs.canvas.height;
 		const bounds = {x:sw*.3,y:sh*.3};
-		this.setState((o) => {
 
-			const localx = this.state.x - this.state.camx;
-			const localy = this.state.y - this.state.camy;
+
+			const localx = player.position.x - player.camera.x;
+			const localy = player.position.y - player.camera.y;
 
 			if(localx > sw-bounds.x-32) {
-				o.camx = this.state.x - sw + bounds.x + 32;
+				player.camera.x = player.position.x - sw + bounds.x + 32;
 			}
 			if(localx < bounds.x) {
-				o.camx = this.state.x - bounds.x;
+				player.camera.x = player.position.x - bounds.x;
 			}
 
 			if(localy > sh-bounds.y-64) {
-				o.camy = this.state.y - sh + bounds.y+64;
+				player.camera.y = player.position.y - sh + bounds.y+64;
 			}
 			if(localy < bounds.y) {
-				o.camy = this.state.y - bounds.y;
+				player.camera.y = player.position.y - bounds.y;
 			}
 
-			if (localx > sw-bounds.x-96 && o.register['ArrowRight'] === 0) {
-				o.camx += Math.min(3, localx - (sw-bounds.x-96));
+			if (localx > sw-bounds.x-96 && input.register['ArrowRight'] === 0) {
+				player.camera.x += Math.min(3, localx - (sw-bounds.x-96));
 			}
-			if (localx < bounds.x+64 && o.register['ArrowLeft'] === 0) {
-				o.camx -= Math.min(3,localx - bounds.x+64);;
-			}
-
-			if (localy > sh-bounds.y-128 && o.register['ArrowDown'] === 0) {
-				o.camy += Math.min(3, localy - (sh-bounds.y-128));
-			}
-			if (localy < bounds.y+64 && o.register['ArrowUp'] === 0) {
-				o.camy -= Math.min(3,localy - bounds.y+64);;
+			if (localx < bounds.x+64 && input.register['ArrowLeft'] === 0) {
+				player.camera.x -= Math.min(3,localx - bounds.x+64);;
 			}
 
-			o.camx = Math.min(Math.max(0,o.camx),3200-sw);
-			o.camy = Math.min(Math.max(0,o.camy),1800-sh);
-		})
+			if (localy > sh-bounds.y-128 && input.register['ArrowDown'] === 0) {
+				player.camera.y += Math.min(3, localy - (sh-bounds.y-128));
+			}
+			if (localy < bounds.y+64 && input.register['ArrowUp'] === 0) {
+				player.camera.y -= Math.min(3,localy - bounds.y+64);;
+			}
+
+			player.camera.x = Math.min(Math.max(0,player.camera.x),3200-sw);
+			player.camera.y = Math.min(Math.max(0,player.camera.y),1800-sh);
+
 	}
 
 	movePlayer() {
-		this.setState((o) => {
+
 			
-			const hdir = o.register['ArrowRight'] - o.register['ArrowLeft'];
-			const vdir = o.register['ArrowDown'] - o.register['ArrowUp'];
+			const hdir = input.register['ArrowRight'] - input.register['ArrowLeft'];
+			const vdir = input.register['ArrowDown'] - input.register['ArrowUp'];
 			const speed = (hdir !== 0 && vdir !== 0)?(3 * Math.sin(Math.PI/4)):3;
 			
 			if (hdir !== 0 || vdir !== 0) {
-				o.animIndex++;
+				player.sprite.animIndex++;
 			}else{
-				o.animIndex=9;
+				player.sprite.animIndex=9;
 			}
 
-			o.imageDir = getImageDir(hdir,vdir,o.imageDir);
+			player.sprite.imageDir = getImageDir(hdir,vdir,player.sprite.imageDir);
 
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				MapObjects.forEach((e)=>{
+				mapWalls.forEach((e)=>{
 					if (!fail && this.collision({xpos: e.xpos-i*hdir, ypos: e.ypos, width:32, height: 32})) {
 						fail = true
 					}
 				})
 
 				if (!fail) {
-					o.x+=hdir*i;
+					player.position.x+=hdir*i;
 					i=0;
 				}
 			}
 
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				MapObjects.forEach((e)=>{
+				mapWalls.forEach((e)=>{
 					if (!fail && this.collision({xpos: e.xpos, ypos: e.ypos-i*vdir, width:32, height: 32})) {
 						fail = true
 					}
 				})
 
 				if (!fail) {
-					o.y+=vdir*i;
+					player.position.y+=vdir*i;
 					i=0;
 				}
 			}
-		});
+
 	}
 
 	drawBackground() {
-		ctx.drawImage(mapImage,0-this.state.camx,0-this.state.camy);
+		ctx.drawImage(mapImage,0-player.camera.x,0-player.camera.y);
+	}
+
+	drawDebug() {
+		const offx = player.camera.x;
+		const offy = player.camera.y;
+
+		//DrawWalls
+		ctx.fillStyle = "rgb(255,200,50)"
+		if (this.props.drawWalls) {
+			mapWalls.forEach((e)=>{
+				ctx.fillRect(e.xpos-offx,e.ypos-offy,32,32);
+			})
+		}
+
+		//Draw Mouse Position
+		ctx.font = '32px Roboto'
+		ctx.fillStyle = "rgb(255,255,255)"
+        ctx.fillText('(' + input.mouse.x + ',' + input.mouse.y + ')', 50, 50);
 	}
 
 	render() {
@@ -336,3 +313,4 @@ const getImageDir = function(h,v,last) {
 		return last;
 	}
 }
+

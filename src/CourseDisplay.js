@@ -1,16 +1,13 @@
 import React, { Component } from 'react';
 import AppBar from 'material-ui/AppBar';
-
-import injectTapEventPlugin from 'react-tap-event-plugin';
-
-
 import Drawer from 'material-ui/Drawer';
 import IconButton from 'material-ui/IconButton';
 import NavigationClose from 'material-ui/svg-icons/navigation/close';
 import MenuItem from 'material-ui/MenuItem';
 
-
+import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
+
 class CourseDisplay extends Component {
 	getTitle() {
 		if (this.props.info) {

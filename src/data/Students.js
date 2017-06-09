@@ -1,4 +1,4 @@
-const Exercises = {
+const Students = {
 
 		DrawingChallenge4: {
 			lessons: [
@@ -20,4 +20,4 @@ const Exercises = {
 		},
 }
 
-export default Exercises;
+export default Students;
