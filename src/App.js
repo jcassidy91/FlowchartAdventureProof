@@ -2,9 +2,11 @@ import React, { Component } from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import Snackbar from 'material-ui/Snackbar';
-import Drawer from 'material-ui/Drawer';
+import CourseDisplay from './CourseDisplay.js'
 import './App.css';
 import Game from './Game.js'
+
+
 
 class App extends Component {
   constructor() {
@@ -12,13 +14,19 @@ class App extends Component {
     this.state = {
       title: "MVCode Adventure!",
       snackbar: false,
-      menu: true
+      lessonList: true,
+      waitForTimeOut: false,
+      lessonInfo: {},
     }
   }
 
   setTitle(title) {
-    this.setState({title});
-    this.state.snackbar = true;
+    this.setState(
+      {
+        title: title,
+        snackbar: true
+      }
+    );
   }
 
   handleRequestClose() {
@@ -27,9 +35,21 @@ class App extends Component {
     });
   }
 
+  toggleLessonList(info,open) {
+    if (!this.state.waitForTimeOut) {
+      this.setState({
+        lessonList: open,
+        waitForTimeOut: true,
+        lessonInfo: info
+      });
+      setTimeout(()=>{this.setState({waitForTimeOut:false})},250);
+    }
+  }
+
   render() {
     return (
       <div className="App">
+      
         <MuiThemeProvider>
         <div>
           <AppBar 
@@ -38,8 +58,8 @@ class App extends Component {
               backgroundColor:"rgb(218,35,35)",
             }}
           />
-
-          <Game setTitle={this.setTitle.bind(this)}/>
+          <CourseDisplay info = {this.state.lessonInfo} open = {this.state.lessonList} toggleLessonList={this.toggleLessonList.bind(this)}/>
+          <Game setTitle={this.setTitle.bind(this)} toggleLessonList = {this.toggleLessonList.bind(this)}/>
 
           <Snackbar
             open={this.state.snackbar}

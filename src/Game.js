@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import Courses from './data/Courses';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Drawer from 'material-ui/Drawer';
 
@@ -7,8 +8,54 @@ myImage.src = require('./images/characterSheet.png');
 const mapImage = new Image();
 mapImage.src = require('./images/adventureTimeMap.png');
 
+var courseTiles = [
+	{
+		name: "javaScriptGameDesign",
+		xpos: 1505,
+		ypos: 600,
+		width: 50,
+		height: 50
+	},
+	{
+		name: "javaScriptGameEngine",
+		xpos: 2110,
+		ypos: 720,
+		width: 50,
+		height: 50
+	},
+	{
+		name: "IntroToWeb",
+		xpos: 830,
+		ypos: 770,
+		width: 50,
+		height: 50
+	},
+]
+
+var ExerciseTiles = [
+{
+		name: "DrawingChallenge2",
+		xpos: 1262,
+		ypos: 825,
+		width: 50,
+		height: 50,
+		difficulty: 1
+	},
+	{
+		name: "WhileLoops2",
+		xpos: 1384,
+		ypos: 639,
+		width: 50,
+		height: 50,
+		difficulty: 2
+	}
+]
+
 var ctx;
+var mouseX = 0;
+var mouseY = 0;
 const locations = ["Object Castle", "Forest Array", "Logic Mounds"];
+var currentLocation = "";
 
 class Game extends Component {
 	constructor() {
@@ -34,12 +81,20 @@ class Game extends Component {
 	componentDidMount() {
 		document.addEventListener("keydown", this.handleKeyDown.bind(this), false);
 		document.addEventListener("keyup", this.handleKeyUp.bind(this), false);
+		document.addEventListener("mousemove", this.handleMouseMove.bind(this),false);
 		requestAnimationFrame(this.init);
 	}
 
 	componentWillUnmount() {
 		document.removeEventListener("keydown", this.handleKeyDown, false);
 		document.removeEventListener("keyup", this.handleKeyDown, false);
+		document.removeEventListener("mousemove", this.handleMouseMove,false);
+	}
+
+	handleMouseMove(e) {
+		const rect = this.refs.canvas.getBoundingClientRect();
+		mouseX = e.clientX - rect.left + this.state.camx;
+		mouseY = e.clientY - rect.top + this.state.camy;
 	}
 
 	handleKeyDown(e) {
@@ -69,16 +124,77 @@ class Game extends Component {
 
 	tick() {
 
+		this.checkNewLocation();
+
 		this.movePlayer();
 		this.moveCamera();
+
 		this.drawBackground();
+		this.drawTiles();
         this.drawPlayer();
 
-        if (this.state.register['e']) {
-        	this.props.setTitle(locations[Math.floor(Math.random() * 2.9)]);
-        }
+
+        ctx.font = '32px Roboto'
+        ctx.fillText('(' + mouseX + ',' + mouseY + ')', 50, 50);
 
 		requestAnimationFrame(this.tick);
+	}
+
+	checkNewLocation() {
+		if (this.state.x < 930 && currentLocation !== "Web Valley"){
+			this.props.setTitle("Web Valley");
+			currentLocation = "Web Valley";
+		}
+		if (this.state.x > 1000 && this.state.x < 1980 && currentLocation !== "JavaScript Kingdom"){
+			this.props.setTitle("JavaScript Kingdom");
+			currentLocation = "JavaScript Kingdom";
+		}
+		if (this.state.x > 2050 && currentLocation !== "Unity Forest"){
+			this.props.setTitle("Unity Forest");
+			currentLocation = "Unity Forest";
+		}
+	}
+
+	drawTiles() {
+		
+		const offx = this.state.camx;
+		const offy = this.state.camy;
+
+		let check = false;
+		ctx.fillStyle = "rgb(0,0,255";
+		courseTiles.forEach((tile) => {
+			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
+
+			if(this.collision(tile)) {
+				if (this.state.register['e']) {
+		        	this.props.toggleLessonList(Courses[tile.name],true);
+		        }
+		        check = true;
+			}
+		})
+		ctx.fillStyle = "rgb(255,0,0";
+		ExerciseTiles.forEach((tile) => {
+			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
+		})
+
+		if (!check) {
+			this.props.toggleLessonList(null,false);
+		}
+	}
+
+	collision(tile) {
+		const obj1 = {x: this.state.x, y: this.state.y, w:64, h:64};
+		const obj2 = {x: tile.xpos, y: tile.ypos, w:tile.width, h:tile.height};
+
+		if (obj1.x + obj1.w > obj2.x &&
+		    obj1.x < obj2.x + obj2.w &&
+		    obj1.y + obj1.h > obj2.y &&
+		    obj1.y < obj2.y + obj2.h) {
+			console.log("collision!")
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	drawPlayer() {
