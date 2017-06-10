@@ -30,7 +30,6 @@ class Input {
 }
 
 var ctx;
-
 var player = new Player();
 var input = new Input();
 
@@ -90,13 +89,13 @@ class Game extends Component {
 
 		this.checkNewLocation();
 
-		this.movePlayer();
+		
 		this.moveCamera();
 
 		this.drawBackground();
 		this.drawTiles();
         this.drawPlayer();
-
+this.movePlayer();
         this.drawDebug();
 
 		requestAnimationFrame(this.tick);
@@ -230,9 +229,14 @@ class Game extends Component {
 
 			player.sprite.imageDir = getImageDir(hdir,vdir,player.sprite.imageDir);
 
+			const colliders = mapWalls.filter((e)=>{return Math.hypot(player.position.x-e.xpos,player.position.y-e.ypos) < 96});
+
+			ctx.fillStyle = "rgb(255,200,50)";
+
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				mapWalls.forEach((e)=>{
+				colliders.forEach((e)=>{
+					ctx.fillRect(e.xpos-player.camera.x,e.ypos-player.camera.y,32,32);
 					if (!fail && this.collision({xpos: e.xpos-i*hdir, ypos: e.ypos, width:32, height: 32})) {
 						fail = true
 					}
@@ -246,7 +250,7 @@ class Game extends Component {
 
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				mapWalls.forEach((e)=>{
+				colliders.forEach((e)=>{
 					if (!fail && this.collision({xpos: e.xpos, ypos: e.ypos-i*vdir, width:32, height: 32})) {
 						fail = true
 					}

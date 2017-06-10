@@ -21,6 +21,7 @@ class App extends Component {
       lessonList: true,
       waitForTimeOut: false,
       lessonInfo: {},
+      color: "rgb(218,35,35)"
     }
   }
 
@@ -62,7 +63,7 @@ class App extends Component {
           <AppBar 
             title={this.state.title}
             style={{
-              backgroundColor:"rgb(218,35,35)",
+              backgroundColor:this.state.color,
             }}
             iconElementLeft={<DebugMenu toggleWalls={this.toggleWalls.bind(this)}/>}
           />
