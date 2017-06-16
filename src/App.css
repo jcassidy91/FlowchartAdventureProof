@@ -1,3 +1,9 @@
 .App {
   text-align: center;
 }
+
+.colorBox {
+  padding:10px;
+  border-style: solid;
+  margin:4px;
+}

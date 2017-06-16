@@ -691,6 +691,6 @@ const mapWalls = [
 ]
 
 const mapImage = new Image();
-mapImage.src = require('../images/adventureTimeMap.png');
+mapImage.src = require('../images/myFunMap.png');
 
-export {mapWalls as mapWalls, mapImage as mapImage};
+export {mapWalls, mapImage};

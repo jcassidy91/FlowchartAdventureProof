@@ -3,18 +3,28 @@ import {mapWalls, mapImage} from './data/mapWalls.js';
 import courseTiles from './data/courseTiles.js';
 import exerciseTiles from './data/exerciseTiles.js';
 
+var treeImage = new Image();
+treeImage.src = require('./images/tree1.png');
+var overworldImage = new Image();
+overworldImage.src = require('./images/myFunMap.png')
+var towerLibraryImage = new Image();
+towerLibraryImage.src = require('./images/towerLibrary.png')
+var adventureTimeImage = new Image();
+adventureTimeImage.src = require('./images/adventureTimeMap.png')
+
 class Player {
 	constructor() {
-		this.position= {x:0, y:0},
-		this.camera= {x:0, y:0},
-		this.sprite=	{
+		this.position = {x:0, y:0},
+		this.camera = {x:0, y:0},
+		this.sprite = {
 			image: new Image(),
 			animIndex: 0,
 			imageDir: 3,
-		}
+		},
 		this.sprite.image.src= require('./images/characterSheet.png'),
-		this.currentLocation = ""
-	}
+		this.currentLocation = "",
+		this.room = "adventureTime"
+	};
 }
 
 class Input {
@@ -29,7 +39,32 @@ class Input {
 	}
 }
 
+const rooms = {
+	overworld: {
+		image: overworldImage,
+		startx: 880,
+		starty: 932,
+		width: 1443,
+		height: 1280,
+	},
+	towerLibrary: {
+		image: towerLibraryImage,
+		startx: 527,
+		starty: 436,
+		width: 1200,
+		height: 800,
+	},
+	adventureTime: {
+		image: adventureTimeImage,
+		startx: 1458,
+		starty: 1024,
+		width: 3200,
+		height: 1800,
+	}
+}
+
 var ctx;
+var room;
 var player = new Player();
 var input = new Input();
 
@@ -74,31 +109,46 @@ class Game extends Component {
 
 	init() {
 		ctx = this.refs.canvas.getContext('2d');
-
-
-			player.position.x=1442,
-			player.position.y=1000,
-			player.camera.x=1442-this.refs.canvas.width/2 + 32,
-			player.camera.y=1000-this.refs.canvas.height/2
-
+		player.position.x=rooms[player.room].startx;
+		player.position.y=rooms[player.room].starty;
+		player.camera.x=rooms[player.room].startx-this.refs.canvas.width/2 + 32;
+		player.camera.y=rooms[player.room].starty-this.refs.canvas.height/2;
 
 		requestAnimationFrame(this.tick);
 	}
 
 	tick() {
-
+		this.warpNewLocation();
 		this.checkNewLocation();
-
-		
 		this.moveCamera();
 
 		this.drawBackground();
 		this.drawTiles();
-        this.drawPlayer();
-this.movePlayer();
-        this.drawDebug();
+	    this.drawPlayer();
+		this.movePlayer();
+	    this.drawDebug();
 
 		requestAnimationFrame(this.tick);
+	}
+
+	initPlayer() {
+		player.position.x = rooms[player.room].startx;
+		player.position.y = rooms[player.room].starty;
+	}
+
+	warpNewLocation() {
+		if (input.register['1']) {
+			player.room = 'overworld'
+			this.initPlayer();
+		}
+		if (input.register['2']) {
+			player.room = 'towerLibrary'
+			this.initPlayer();
+		}
+		if (input.register['3']) {
+			player.room = 'adventureTime'
+			this.initPlayer();
+		}
 	}
 
 	checkNewLocation() {
@@ -159,7 +209,6 @@ this.movePlayer();
 		    obj1.x < obj2.x + obj2.w &&
 		    obj1.y + obj1.h > obj2.y &&
 		    obj1.y < obj2.y + obj2.h) {
-			console.log("collision!")
 			return true;
 		} else {
 			return false;
@@ -169,7 +218,7 @@ this.movePlayer();
 	drawPlayer() {
 		const animSpeed = 40;
         const sx = Math.floor((player.sprite.animIndex % animSpeed) / (animSpeed/4))*64;
-		ctx.drawImage(player.sprite.image,sx,player.sprite.imageDir*64,64,64,player.position.x-player.camera.x,player.position.y-player.camera.y,64,64);
+		ctx.drawImage(player.sprite.image,sx,player.sprite.imageDir*64,64,64,player.position.x-player.camera.x,player.position.y-player.camera.y,48,48);
 	}
 
 	moveCamera() {
@@ -199,18 +248,18 @@ this.movePlayer();
 				player.camera.x += Math.min(3, localx - (sw-bounds.x-96));
 			}
 			if (localx < bounds.x+64 && input.register['ArrowLeft'] === 0) {
-				player.camera.x -= Math.min(3,localx - bounds.x+64);;
+				player.camera.x -= Math.min(3,localx - bounds.x+64);
 			}
 
 			if (localy > sh-bounds.y-128 && input.register['ArrowDown'] === 0) {
 				player.camera.y += Math.min(3, localy - (sh-bounds.y-128));
 			}
 			if (localy < bounds.y+64 && input.register['ArrowUp'] === 0) {
-				player.camera.y -= Math.min(3,localy - bounds.y+64);;
+				player.camera.y -= Math.min(3,localy - bounds.y+64);
 			}
 
-			player.camera.x = Math.min(Math.max(0,player.camera.x),3200-sw);
-			player.camera.y = Math.min(Math.max(0,player.camera.y),1800-sh);
+			player.camera.x = Math.min(Math.max(0,player.camera.x),rooms[player.room].width-sw);
+			player.camera.y = Math.min(Math.max(0,player.camera.y),rooms[player.room].height-sh);
 
 	}
 
@@ -225,6 +274,7 @@ this.movePlayer();
 				player.sprite.animIndex++;
 			}else{
 				player.sprite.animIndex=9;
+				return;
 			}
 
 			player.sprite.imageDir = getImageDir(hdir,vdir,player.sprite.imageDir);
@@ -232,15 +282,18 @@ this.movePlayer();
 			const colliders = mapWalls.filter((e)=>{return Math.hypot(player.position.x-e.xpos,player.position.y-e.ypos) < 96});
 
 			ctx.fillStyle = "rgb(255,200,50)";
-
+			
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				colliders.forEach((e)=>{
-					ctx.fillRect(e.xpos-player.camera.x,e.ypos-player.camera.y,32,32);
-					if (!fail && this.collision({xpos: e.xpos-i*hdir, ypos: e.ypos, width:32, height: 32})) {
-						fail = true
-					}
-				})
+
+				if (this.props.placeWalls) {
+					colliders.forEach((e)=>{
+						ctx.fillRect(e.xpos-player.camera.x,e.ypos-player.camera.y,32,32);
+						if (!fail && this.collision({xpos: e.xpos-i*hdir, ypos: e.ypos, width:32, height: 32})) {
+							fail = true
+						}
+					})
+				}
 
 				if (!fail) {
 					player.position.x+=hdir*i;
@@ -250,11 +303,13 @@ this.movePlayer();
 
 			for (let i=speed; i>0; i--) {
 				let fail = false;
-				colliders.forEach((e)=>{
-					if (!fail && this.collision({xpos: e.xpos, ypos: e.ypos-i*vdir, width:32, height: 32})) {
-						fail = true
-					}
-				})
+				if (this.props.placeWalls) {
+					colliders.forEach((e)=>{
+									if (!fail && this.collision({xpos: e.xpos, ypos: e.ypos-i*vdir, width:32, height: 32})) {
+										fail = true
+									}
+								})
+				}
 
 				if (!fail) {
 					player.position.y+=vdir*i;
@@ -265,7 +320,7 @@ this.movePlayer();
 	}
 
 	drawBackground() {
-		ctx.drawImage(mapImage,0-player.camera.x,0-player.camera.y);
+		ctx.drawImage(rooms[player.room].image,0-player.camera.x,0-player.camera.y);
 	}
 
 	drawDebug() {
@@ -281,16 +336,19 @@ this.movePlayer();
 		}
 
 		//Draw Mouse Position
-		ctx.font = '32px Roboto'
-		ctx.fillStyle = "rgb(255,255,255)"
-        ctx.fillText('(' + input.mouse.x + ',' + input.mouse.y + ')', 50, 50);
+		if (this.props.drawMousePos) {
+			ctx.font = '32px Roboto'
+			ctx.fillStyle = "rgb(0,0,0)"
+	        ctx.fillText('(' + input.mouse.x + ',' + input.mouse.y + ')', 50, 50);
+	    }
 	}
 
 	render() {
 		const style = {
 			borderWidth: 1, 
 			borderStyle: 'solid', 
-			position: "relative"
+			position: "relative",
+			imageRendering: "crisp-edges",
 		}
 		const width = Math.max(window.innerWidth*.8,640);
 		const height = Math.max(window.innerHeight - 100,380);
@@ -317,4 +375,3 @@ const getImageDir = function(h,v,last) {
 		return last;
 	}
 }
-

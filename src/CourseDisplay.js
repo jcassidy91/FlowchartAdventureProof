@@ -52,7 +52,7 @@ class CourseDisplay extends Component {
 		                title={this.getTitle()}
 		                iconElementLeft={<IconButton><NavigationClose onClick={()=>this.props.toggleLessonList(null,false)}/></IconButton>}
 		                style={{
-		                  backgroundColor:"rgb(218,35,35)",
+		                  backgroundColor:this.props.backgroundColor,
 		                  color:"rgb(255,255,255)",
 		                  margin: "0px",
 		                  fontSize:"24px"
