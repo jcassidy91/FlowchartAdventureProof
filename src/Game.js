@@ -1,16 +1,21 @@
 import React, {Component} from 'react';
 import {mapWalls, mapImage} from './data/mapWalls.js';
 import courseTiles from './data/courseTiles.js';
-import exerciseTiles from './data/exerciseTiles.js';
+import exerciseTiles from './data/myMapExerciseTiles.js';
 
 var treeImage = new Image();
 treeImage.src = require('./images/tree1.png');
 var overworldImage = new Image();
-overworldImage.src = require('./images/myFunMap.png')
+overworldImage.src = require('./images/myFunMap.png');
 var towerLibraryImage = new Image();
-towerLibraryImage.src = require('./images/towerLibrary.png')
+towerLibraryImage.src = require('./images/towerLibrary.png');
 var adventureTimeImage = new Image();
-adventureTimeImage.src = require('./images/adventureTimeMap.png')
+adventureTimeImage.src = require('./images/adventureTimeMap.png');
+var pathMapImage = new Image();
+pathMapImage.src = require('./images/pathMap.png');
+
+var exerciseIcon = new Image();
+exerciseIcon.src = require('./images/exerciseIcon.png');
 
 class Player {
 	constructor() {
@@ -42,6 +47,13 @@ class Input {
 const rooms = {
 	overworld: {
 		image: overworldImage,
+		startx: 880,
+		starty: 932,
+		width: 1443,
+		height: 1280,
+	},
+	pathMap: {
+		image: pathMapImage,
 		startx: 880,
 		starty: 932,
 		width: 1443,
@@ -149,6 +161,10 @@ class Game extends Component {
 			player.room = 'adventureTime'
 			this.initPlayer();
 		}
+		if (input.register['4']) {
+			player.room = 'pathMap'
+			this.initPlayer();
+		}
 	}
 
 	checkNewLocation() {
@@ -175,7 +191,7 @@ class Game extends Component {
 		let check = false;
 		ctx.fillStyle = "rgb(0,0,255";
 		courseTiles.forEach((tile) => {
-			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
+			//ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
 
 			if(this.collision(tile)) {
 				if (input.register['e']) {
@@ -186,7 +202,8 @@ class Game extends Component {
 		})
 		ctx.fillStyle = "rgb(255,0,0";
 		exerciseTiles.forEach((tile) => {
-			ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
+			ctx.drawImage(exerciseIcon, tile.xpos-offx-48,tile.ypos-offy-48);
+			//ctx.fillRect(tile.xpos-offx,tile.ypos-offy,tile.width,tile.height);
 
 			if(this.collision(tile)) {
 				if (input.register['e']) {

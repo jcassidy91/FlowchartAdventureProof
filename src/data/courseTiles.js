@@ -9,6 +9,13 @@ const courseTiles = [
 		height: 50
 	},
 	{
+		name: "javaScriptGameDesign",
+		xpos: 807,
+		ypos: 257,
+		width: 50,
+		height: 50
+	},
+	{
 		name: "javaScriptGameEngine",
 		xpos: 2110,
 		ypos: 720,

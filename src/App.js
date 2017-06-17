@@ -187,7 +187,7 @@ const showColorSettings = (updateColor, studentRank) => {
   const list = colorList(studentRank).map((e,index) => {
     if (e.req) {
       return (
-        <button className="colorBox" onClick={() => {handleClick(e.color)}} style={{backgroundColor: e.color}}></button>
+        <button className="colorBox" key={e} onClick={() => {handleClick(e.color)}} style={{backgroundColor: e.color}}></button>
       )
     } 
   })
